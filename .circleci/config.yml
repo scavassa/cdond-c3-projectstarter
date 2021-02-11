@@ -106,7 +106,6 @@ jobs:
           name: Front-end Scan
           command: |
             cd frontend
-            npm i
             npm audit --audit-level=critical
 
   scan-backend:
@@ -117,10 +116,9 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Backe-end Scan
+          name: Back-end Scan
           command: |
             cd backend
-            npm i
             npm audit --audit-level=critical
 
   deploy-infrastructure:
