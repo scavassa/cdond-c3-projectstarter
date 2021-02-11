@@ -78,6 +78,7 @@ jobs:
           name: Front-end test
           command: |
             cd frontend
+            npm i
             npm run test
                 
   test-backend:
@@ -91,6 +92,7 @@ jobs:
           name: Back-end test
           command: |
             cd backend
+            npm i
             npm run test
             
   scan-frontend:
@@ -104,6 +106,7 @@ jobs:
           name: Front-end Scan
           command: |
             cd frontend
+            npm i
             npm audit --audit-level=critical
 
   scan-backend:
@@ -117,6 +120,7 @@ jobs:
           name: Front-end Scan
           command: |
             cd frontend
+            npm i
             npm audit --audit-level=critical
 
   deploy-infrastructure:
