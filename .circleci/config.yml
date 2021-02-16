@@ -144,7 +144,6 @@ jobs:
               --tags project=udapeople \
               --stack-name "udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-            exit 1
       - run:
           name: Save new back-end IP for later use
           command: |
@@ -165,6 +164,7 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             echo ${BACKEND_IP} >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -176,14 +176,18 @@ jobs:
     docker:
       - image: python:slim-buster
     steps:
-      # Checkout code from git
-      # Add ssh keys with fingerprint
-      # attach workspace
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["57:ee:23:60:5d:70:0c:ed:f5:83:83:e0:5f:9f:0b:fe"]
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
-            # Your code here
-            exit 1
+            echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list
+            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+            sudo apt update
+            sudo apt install ansible
       - run:
           name: Configure server
           command: |
@@ -240,9 +244,9 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list
+            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
             sudo apt update
-            sudo apt install software-properties-common
-            sudo apt-add-repository --yes --update ppa:ansible/ansible
             sudo apt install ansible
       - run:
           name: Deploy backend
