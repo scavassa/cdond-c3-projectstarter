@@ -141,7 +141,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
-              --stack-name "udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --stack-name "udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Save new back-end IP for later use
@@ -187,13 +187,14 @@ jobs:
           command: |
             # Your code here
             exit 1
-      # Here's where you will add some code to rollback on failure      
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}     
 
   run-migrations:
     docker:
       - image: circleci/node:13.8.0
     steps:
-      # Checkout code from git
+      - checkout:
       - run:
           name: Run migrations
           command: |
@@ -231,13 +232,16 @@ jobs:
     docker:
       - image: python:slim-buster
     steps:
-      # Checkout code from git
+      - checkout
       # Add ssh keys with fingerprint
       # attach workspace
       - run:
           name: Install dependencies
           command: |
-            # your code here
+            sudo apt update
+            sudo apt install software-properties-common
+            sudo apt-add-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible
       - run:
           name: Deploy backend
           command: |
@@ -252,7 +256,7 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apt install curl
+            sudo apt install curl
             pip install awscli
       - run:
           name: Get backend url
