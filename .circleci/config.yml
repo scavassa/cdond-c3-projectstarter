@@ -147,15 +147,10 @@ jobs:
       - run:
           name: Save new back-end IP for later use
           command: |
-            aws cloudformation --region ${AWS_DEFAULT_REGION} \
-              describe-stacks --stack-name \
-              udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --query "Stacks[0].Outputs[?OutputKey=='udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7}-PublicIp'].OutputValue" \
-              --output text
             export BACKEND_IP=$(aws cloudformation --region ${AWS_DEFAULT_REGION} \
               describe-stacks --stack-name \
               udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --query "Stacks[0].Outputs[?OutputKey=='udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7}-PublicIp'].OutputValue" \
+              --query "Stacks[0].Outputs[?OutputKey=='PublicIp'].OutputValue" \
               --output text) >> $BASH_ENV
             echo $BACKEND_IP
       - run:
