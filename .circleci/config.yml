@@ -151,7 +151,7 @@ jobs:
             export BACKEND_IP=$(aws cloudformation --region ${AWS_DEFAULT_REGION} \
               describe-stacks --stack-name \
               udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --query "Stacks[0].Outputs[?OutputKey=='PublicIp'].OutputValue" \
+              --query "Stacks[0].Outputs[?OutputKey=='udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7}-PublicIp'].OutputValue" \
               --output text) >> $BASH_ENV
       - run:
           name: Ensure front-end infrastructure exist
