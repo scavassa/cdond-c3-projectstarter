@@ -7,14 +7,16 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      # Add parameter here   
+      workflow_id:
+        type: string 
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
-            # Your code here
-            exit 1
+            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
+            aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -143,6 +145,14 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
               exit 1
       - run:
+          name: Save new back-end IP for later use
+          command: |
+            export BACKEND_IP=$(aws cloudformation --region ${AWS_DEFAULT_REGION} \
+              describe-stacks --stack-name \
+              udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+              --query "Stacks[0].Outputs[?OutputKey=='PublicIp'].OutputValue" \
+              --output text) >> $BASH_ENV
+      - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
@@ -154,13 +164,13 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            # Your code here
-            exit 1
+            echo ${BACKEND_IP} >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure      
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   configure-infrastructure:
     docker:
@@ -312,7 +322,7 @@ workflows:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
-              only: [test-feature-branch]
+              only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
