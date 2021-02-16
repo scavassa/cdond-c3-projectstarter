@@ -165,6 +165,7 @@ jobs:
           name: Add back-end IP to ansible inventory
           working_directory: .circleci/ansible
           command: |
+            echo $BACKEND_IP
             echo $BACKEND_IP >> inventory.txt
             cat inventory.txt
       - persist_to_workspace:
