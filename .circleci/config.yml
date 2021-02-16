@@ -162,9 +162,10 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Add back-end ip to ansible inventory
+          working_directory: .circleci/ansible
           command: |
-            echo ${BACKEND_IP} >> .circleci/ansible/inventory.txt
-            cat .circleci/ansible/inventory.txt
+            echo ${BACKEND_IP} >> inventory.txt
+            cat inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -185,14 +186,27 @@ jobs:
           name: Install dependencies
           command: |
             echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list
-            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
-            sudo apt update
-            sudo apt install ansible
+            apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+            apt update
+            apt install ansible
+            pip3 install awscli
+      - run:
+          name: Add .env file
+          working_directory: ./backend
+          command: |
+            echo "ENVIRONMENT=production" >> .env
+            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> .env
+            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> .env
+            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> .env
+            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> .env
+            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> .env
+            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> .env
+            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> .env
       - run:
           name: Configure server
+          working_directory: ./.circleci/ansible
           command: |
-            # Your code here
-            exit 1
+            ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}     
 
@@ -245,9 +259,10 @@ jobs:
           name: Install dependencies
           command: |
             echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list
-            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
-            sudo apt update
-            sudo apt install ansible
+            apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+            apt update
+            apt install ansible
+            pip3 instal awscli
       - run:
           name: Deploy backend
           command: |
