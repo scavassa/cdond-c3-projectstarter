@@ -267,10 +267,10 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            echo ${BACKEND_IP}
+            echo $BACKEND_IP
             BACKEND_IP = $(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
-            export API_URL="http://${BACKEND_IP}:3030"
+            export API_URL="http://$BACKEND_IP:3030"
             echo "${API_URL}"
       - run:
           name: Deploy frontend objects
