@@ -148,7 +148,7 @@ jobs:
           name: Save new back-end IP for later use
           working_directory: .circleci/ansible
           command: |
-            export BACKEND_IP = $(aws cloudformation --region ${AWS_DEFAULT_REGION} \
+            export BACKEND_IP=$(aws cloudformation --region ${AWS_DEFAULT_REGION} \
               describe-stacks --stack-name \
               udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
               --query "Stacks[0].Outputs[?OutputKey=='PublicIp'].OutputValue" \
@@ -156,7 +156,7 @@ jobs:
             echo ${BACKEND_IP} >> inventory.txt
             curl -H "Content-Type: text/plain" \
               -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
-              --request PUT --data "$BACKEND_IP" \
+              --request PUT --data "${BACKEND_IP}" \
               https://api.memstash.io/values/BACKEND_IP
       - run:
           name: Ensure front-end infrastructure exist
