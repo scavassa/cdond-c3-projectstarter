@@ -244,7 +244,18 @@ jobs:
           working_directory: ./backend
           command: |
             npm run migrations > migrations.txt
-            cat migrations.txt
+            if grep "has been executed successfully" migrations.txt
+            then
+              curl -H "Content-Type: text/plain" \
+                -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+                --request PUT --data "1" \
+                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+            else
+              curl -H "Content-Type: text/plain" \
+                -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+                --request PUT --data "1" \
+                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+            fi
       - run:
           name: Send migration results to memstash
           working_directory: ./backend
@@ -268,7 +279,7 @@ jobs:
           name: Get backend url
           command: |
             echo $BACKEND_IP
-            BACKEND_IP = $(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+            BACKEND_IP=$(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
             export API_URL="http://$BACKEND_IP:3030"
             echo "${API_URL}"
