@@ -243,20 +243,22 @@ jobs:
           name: Run migrations
           working_directory: ./backend
           command: |
-            cat .env
             npm run migrations > migrations.txt
             cat migrations.txt
       - run:
           name: Send migration results to memstash
           command: |
-            # Your code here
+            curl -H "Content-Type: text/plain" \
+              -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+              --request PUT --data "$(cat migrations.txt)" \
+              https://api.memstash.io/values/MIGRATIONS
       - revert-migrations
 
   deploy-frontend:
     docker:
       - image: amazon/aws-cli
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -273,15 +275,18 @@ jobs:
           name: Deploy frontend objects
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure      
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
                     
   deploy-backend:
     docker:
       - image: python:slim-buster
     steps:
       - checkout
-      # Add ssh keys with fingerprint
-      # attach workspace
+      - add_ssh_keys:
+          fingerprints: ["57:ee:23:60:5d:70:0c:ed:f5:83:83:e0:5f:9f:0b:fe"]
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -295,7 +300,8 @@ jobs:
           name: Deploy backend
           command: |
             # your code here
-      # Here's where you will add some code to rollback on failure  
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   smoke-test:
     docker:
