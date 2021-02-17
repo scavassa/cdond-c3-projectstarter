@@ -146,13 +146,18 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Save new back-end IP for later use
+          working_directory: .circleci/ansible
           command: |
-            echo 'export BACKEND_IP=$(aws cloudformation --region ${AWS_DEFAULT_REGION} \
+            export BACKEND_IP = $(aws cloudformation --region ${AWS_DEFAULT_REGION} \
               describe-stacks --stack-name \
               udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
               --query "Stacks[0].Outputs[?OutputKey=='PublicIp'].OutputValue" \
-              --output text)' >> $BASH_ENV
-            echo $BACKEND_IP
+              --output text)
+            echo ${BACKEND_IP} >> inventory.txt
+            curl -H "Content-Type: text/plain" \
+              -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+              --request PUT --data "$BACKEND_IP" \
+              https://api.memstash.io/values/BACKEND_IP
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -165,8 +170,6 @@ jobs:
           name: Add back-end IP to ansible inventory
           working_directory: .circleci/ansible
           command: |
-            echo $BACKEND_IP
-            echo $BACKEND_IP >> inventory.txt
             cat inventory.txt
       - persist_to_workspace:
           root: ~/
@@ -242,7 +245,9 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            # your code here
+            echo ${BACKEND_IP}
+            BACKEND_IP = $(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+              --request GET https://api.memstash.io/values/BACKEND_IP)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
       - run:
