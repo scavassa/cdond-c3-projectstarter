@@ -208,10 +208,6 @@ jobs:
             echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> .env
             echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> .env
             echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> .env
-            curl -H "Content-Type: text/plain" \
-              -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
-              --request PUT --data "$(cat .env)" \
-              https://api.memstash.io/values/ENV
       - run:
           name: Configure server
           working_directory: ./.circleci/ansible
@@ -239,6 +235,10 @@ jobs:
             echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> .env
             echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> .env
             echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> .env
+            curl -H "Content-Type: text/plain" \
+              -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+              --request PUT --data "$(cat .env)" \
+              https://api.memstash.io/values/ENV
       - run:
           name: Run migrations
           working_directory: ./backend
