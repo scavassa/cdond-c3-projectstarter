@@ -247,6 +247,7 @@ jobs:
             cat migrations.txt
       - run:
           name: Send migration results to memstash
+          working_directory: ./backend
           command: |
             curl -H "Content-Type: text/plain" \
               -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
