@@ -319,25 +319,34 @@ jobs:
     docker:
       - image: python:slim-buster 
     steps:
-      # Checkout code from git
+      - checkout
       - run:
           name: Install dependencies
           command: |
-            sudo apt install curl
+            sudo apt install curl -y
             pip install awscli
       - run:
           name: Get backend url
           command: |
-            # your code here
+            BACKEND_IP=$(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+              --request GET https://api.memstash.io/values/BACKEND_IP)
+            export API_URL="http://$BACKEND_IP:3030"
       - run:
           name: Backend smoke test.
           command: |
-            # your code here
+            curl $API_URL/api/status
       - run:
           name: Frontend smoke test.
           command: |
-            # your code here
-      # Here's where you will add some code to rollback on failure  
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-2.amazonaws.com"
+            if curl -s ${URL} | grep "Welcome"
+            then
+              return 1
+            else
+              return 0
+            fi
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
 
   cloudfront-update:
     docker:
