@@ -14,6 +14,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+          echo << parameters.workflow_id >>
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
             aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force
@@ -275,7 +276,7 @@ jobs:
           command: |
             BACKEND_IP=$(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
-            export API_URL="http://$BACKEND_IP:3030"
+            echo 'export API_URL="http://$BACKEND_IP:3030"' >> $BASH_ENV
             echo "${API_URL}"
       - run:
           name: Deploy frontend objects
@@ -323,14 +324,15 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            sudo apt install curl -y
-            pip install awscli
+            apt update
+            apt install curl -y
+            pip3 install awscli
       - run:
           name: Get backend url
           command: |
             BACKEND_IP=$(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
-            export API_URL="http://$BACKEND_IP:3030"
+            echo 'export API_URL="http://$BACKEND_IP:3030"' >> $BASH_ENV
       - run:
           name: Backend smoke test.
           command: |
