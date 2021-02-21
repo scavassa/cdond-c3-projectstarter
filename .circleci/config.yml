@@ -8,7 +8,7 @@ commands:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
       workflow_id:
-        type: string 
+        type: string
     steps:
       - run:
           name: Destroy environments
@@ -17,18 +17,20 @@ commands:
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
             aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force
+            exit 1
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      workflow_id:
+        type: string     
     steps:
       - run:
           name: Revert migrations
           when: on_fail
           command: |
-            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
+            SUCCESS = $(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+              --request GET https://api.memstash.io/values/migration_<< parameters.workflow_id >>)
             if(( $SUCCESS==1 )); 
             then
               cd ~/project/backend
@@ -197,24 +199,12 @@ jobs:
             apt install ansible -y
             pip3 install awscli
       - run:
-          name: Add .env file
-          working_directory: ./backend
-          command: |
-            echo "ENVIRONMENT=production" >> .env
-            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> .env
-            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> .env
-            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> .env
-            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> .env
-            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> .env
-            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> .env
-            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> .env
-      - run:
           name: Configure server
           working_directory: ./.circleci/ansible
           command: |
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}     
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   run-migrations:
     docker:
@@ -224,6 +214,11 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
+          name: Install Dependencies
+          command: |
+            sudo apt update
+            sudo apt install awscli -y
+      - run:
           name: Add .env file
           working_directory: ./backend
           command: |
@@ -235,10 +230,6 @@ jobs:
             echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> .env
             echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> .env
             echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> .env
-            curl -H "Content-Type: text/plain" \
-              -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
-              --request PUT --data "$(cat .env)" \
-              https://api.memstash.io/values/ENV
       - run:
           name: Run migrations
           working_directory: ./backend
@@ -253,7 +244,7 @@ jobs:
             else
               curl -H "Content-Type: text/plain" \
                 -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
-                --request PUT --data "1" \
+                --request PUT --data "0" \
                 https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
             fi
       - run:
@@ -264,21 +255,24 @@ jobs:
               -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request PUT --data "$(cat migrations.txt)" \
               https://api.memstash.io/values/MIGRATIONS
-      - revert-migrations
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: |
-            # your code here
+            sudo apt update
+            sudo apt install awscli -y
       - run:
           name: Get backend url
           command: |
-            echo $BACKEND_IP
             BACKEND_IP=$(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request GET https://api.memstash.io/values/BACKEND_IP)
             export API_URL="http://$BACKEND_IP:3030"
@@ -286,9 +280,12 @@ jobs:
       - run:
           name: Deploy frontend objects
           command: |
-            # your code here
+            cd frontend
+            npm i
+            npm run build
+            aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
                     
   deploy-backend:
     docker:
@@ -297,6 +294,8 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["57:ee:23:60:5d:70:0c:ed:f5:83:83:e0:5f:9f:0b:fe"]
+      - restore_cache:
+          keys: [backend-build]
       - attach_workspace:
           at: ~/
       - run:
@@ -310,8 +309,9 @@ jobs:
             pip3 install awscli
       - run:
           name: Deploy backend
+          working_directory: ./.circleci/ansible
           command: |
-            # your code here
+            ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
