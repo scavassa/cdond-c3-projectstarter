@@ -29,7 +29,7 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS = $(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
+            SUCCESS=$(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request GET https://api.memstash.io/values/migration_<< parameters.workflow_id >>)
             if(( $SUCCESS==1 )); 
             then
@@ -324,12 +324,12 @@ jobs:
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://FAIL-udapeople-${CIRCLE_WORKFLOW_ID}.s3-website.us-east-2.amazonaws.com"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website.us-east-2.amazonaws.com"
             if curl -s ${URL} | grep "Welcome"
             then
-              return 1
+              exit 1
             else
-              return 0
+              exit 1
             fi
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
