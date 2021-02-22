@@ -3,6 +3,28 @@
     src: /root/project/backend
     dest: /home/ubuntu
 
+- name: "Copy Environment Variables"
+  blockinfile:
+    path: /home/ubuntu/backend/.env
+    insertafter: EOF
+    block: |
+      ENVIRONMENT="production"
+      TYPEORM_MIGRATIONS="{{ lookup('env','TYPEORM_MIGRATIONS') }}"
+      TYPEORM_MIGRATIONS_DIR="{{ lookup('env','TYPEORM_MIGRATIONS') }}"
+      TYPEORM_CONNECTION="{{ lookup('env','TYPEORM_CONNECTION') }}"
+      TYPEORM_ENTITIES="{{ lookup('env','TYPEORM_ENTITIES') }}"
+      TYPEORM_HOST="{{ lookup('env','TYPEORM_HOST') }}"
+      TYPEORM_PORT="{{ lookup('env','TYPEORM_PORT') }}"
+      TYPEORM_USERNAME="{{ lookup('env','TYPEORM_USERNAME') }}"
+      TYPEORM_PASSWORD="{{ lookup('env','TYPEORM_PASSWORD') }}"
+      TYPEORM_DATABASE="{{ lookup('env','TYPEORM_DATABASE') }}"
+
+- name: "Install modules and build."
+  shell: |
+    cd /home/ubuntu/backend
+    npm i
+    npm run build
+
 - name: "Start PM2"
   become: true
   shell: |
