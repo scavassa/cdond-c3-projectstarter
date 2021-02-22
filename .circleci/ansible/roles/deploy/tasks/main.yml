@@ -3,7 +3,12 @@
     src: /root/project/backend
     dest: /home/ubuntu
 
-- name: "Copy Environment Variables"
+- name: Creating an empty .env file
+  file:
+    path: /home/ubuntu/backend/.env
+    state: touch
+
+- name: "Insert Environment Variables into .env file"
   blockinfile:
     path: /home/ubuntu/backend/.env
     insertafter: EOF
