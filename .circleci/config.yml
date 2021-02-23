@@ -31,7 +31,7 @@ commands:
           command: |
             SUCCESS=$(curl -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
               --request GET https://api.memstash.io/values/migration_<< parameters.workflow_id >>)
-            if $SUCCESS="1"
+            if [ $SUCCESS == "1" ]
             then
               cd ~/project/backend
               npm install
