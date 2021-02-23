@@ -234,12 +234,12 @@ jobs:
               curl -H "Content-Type: text/plain" \
                 -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
                 --request PUT --data "1" \
-                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             else
               curl -H "Content-Type: text/plain" \
                 -H "token: d5337210-32aa-45f1-943a-afe0c170b51e" \
                 --request PUT --data "0" \
-                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+                https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
       - run:
           name: Send migration results to memstash
