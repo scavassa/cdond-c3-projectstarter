@@ -16,8 +16,8 @@ commands:
           command: |
             echo << parameters.workflow_id >>
             aws s3 rb s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --force
-            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
-            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name "udapeople-frontend-<< parameters.workflow_id >>"
+            aws cloudformation delete-stack --stack-name "udapeople-backend-<< parameters.workflow_id >>"
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -143,7 +143,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
-              --stack-name "udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Save new back-end IP for later use
@@ -151,7 +151,7 @@ jobs:
           command: |
             export BACKEND_IP=$(aws cloudformation --region ${AWS_DEFAULT_REGION} \
               describe-stacks --stack-name \
-              udapeolple-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+              udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
               --query "Stacks[0].Outputs[?OutputKey=='PublicIp'].OutputValue" \
               --output text)
             echo ${BACKEND_IP} >> inventory.txt
@@ -165,7 +165,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
-              --stack-name "udapeolple-fronted-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --stack-name "udapeople-fronted-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - persist_to_workspace:
           root: ~/
