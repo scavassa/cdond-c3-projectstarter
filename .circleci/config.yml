@@ -345,7 +345,7 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
-              --stack-name udapeople-cloudfornt \
+              --stack-name udapeople-cloudfront \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
       - revert-migrations:
@@ -368,11 +368,6 @@ jobs:
               --query "StackSummaries[*].StackName" \
               --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             echo Old Workflow ID: ${OldWorkflowID}
-      - run:
-          name: Remove old stacks and files
-          command: |
-            echo Old Workflow ID: ${OldWorkflowID}
-            echo Stacks: ${STACKS[@]}
             if [[ "${STACKS[@]}" =~ "{OldWorkflowID}" ]]
             then
               aws s3 rm "s3://udapople-${OldWorkflowID}" --recursive
