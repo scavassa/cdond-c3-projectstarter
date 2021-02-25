@@ -368,7 +368,7 @@ jobs:
               --query "StackSummaries[*].StackName" \
               --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
             echo Old Workflow ID: ${OldWorkflowID}
-            if [[ "${STACKS[@]}" =~ "{OldWorkflowID}" ]]
+            if [[ ${STACKS[@]} =~ ${OldWorkflowID} ]]
             then
               aws s3 rm "s3://udapople-${OldWorkflowID}" --recursive
               aws cloudformation delete-stack --stack-name udapeople-backend-${OldWorkflowID}
